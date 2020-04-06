@@ -29,3 +29,17 @@ mode), where everything is allowed, whereas applications execute in the lowest l
 ### The Current Process
 1.  Kernel code can refer to the current process by accessing the global item **current**, defined in **<asm/current.h>**, which yields a pointer to **struct task_struct**, defined by **<linux/sched.h>**.
 2. The current pointer refers to the process that is currently executing.
+
+### A Few Other Details
+1. Applications are laid out in virtual memory with a very large stack area. The stack, of course, is used to hold the function call history and all automatic variables created by currently active functions.
+2. The kernel, instead, has a very small stack; it can be as small as a single, 4096-byte page. Your functions must share that stack with the entire kernel-space call chain. Thus, it is never a good idea to declare large automatic variables; if you need larger structures, you should allocate them dynamically at call time.
+3. Often, as you look at the kernel API, you will encounter function names starting with a double underscore (\__). Functions so marked are generally a low-level component of the interface and should be used with caution. Essentially, the double underscore says to the programmer: “If you call this function, be sure you know what you are doing.”
+4. Kernel code cannot do floating point arithmetic. Enabling floating point would require that the kernel save and restore the floating point processor’s state on each entry to, and exit from, kernel space.
+
+### Compiling Modules
+1. The first is to ensure that you have sufficiently current versions of the compiler, module utilities, and other necessary tools. The file Documentation/Changes in the kernel documentation directory always lists the required tool versions; you
+should consult it before going any further.
+2. Trying to build a kernel (and its modules) with the wrong tool versions can lead to no end of subtle, difficult problems. Note
+that, occasionally, a version of the compiler that is too new can be just as problematic as one that is too old; the kernel source makes a great many assumptions about the compiler, and new releases can sometimes break things for a while.
+
+
