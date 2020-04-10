@@ -66,7 +66,7 @@ current version and a known checkpoint.
 ## The Kernel Symbol Table
 1. The table contains the addresses of global kernel items—functions and variables—that are needed to implement modularized drivers. When a module is loaded, any symbol exported by the module becomes part of the kernel symbol table. 
 2. New modules can use symbols exported by your module, and you can stack new modules on top of other modules. Module stacking is implemented in the mainstream kernel sources as well: the msdos filesystem relies on symbols exported by the fat module, and each input USB device module stacks on the usbcore and input modules.
-EXPORT_SYMBOL(name);
-EXPORT_SYMBOL_GPL(name);
+> **EXPORT_SYMBOL(name);**
+> **EXPORT_SYMBOL_GPL(name);**
 3. The _GPL version makes the symbol available to GPL-licensed modules only. Symbols must be exported in the global part of the module’s file, outside of any function, because the macros expand to the declaration of a special-purpose variable that is expected to be accessible globally. This variable is stored in a special part of the module executible (an “ELF section”)that is used by the kernel at load time to find the variables exported by the module. 
 
