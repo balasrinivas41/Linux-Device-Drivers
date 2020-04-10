@@ -70,3 +70,19 @@ current version and a known checkpoint.
 > **EXPORT_SYMBOL_GPL(name);**
 3. The _GPL version makes the symbol available to GPL-licensed modules only. Symbols must be exported in the global part of the module’s file, outside of any function, because the macros expand to the declaration of a special-purpose variable that is expected to be accessible globally. This variable is stored in a special part of the module executible (an “ELF section”)that is used by the kernel at load time to find the variables exported by the module. 
 
+## Preliminaries
+- #include <linux/module.h>
+- #include <linux/init.h>
+1. module.h contains a great many definitions of symbols and functions needed by loadable modules. You need init.h to specify your initialization and cleanup functions.
+2. It is not strictly necessary, but your module really should specify which license applies to its code. Doing so is just a matter of including a MODULE_LICENSE line:
+MODULE_LICENSE("GPL");
+3. The specific licenses recognized by the kernel are “GPL” (for any version of the GNU General Public License), “GPL v2” (for GPL version two only), “GPL and additional rights,” “Dual BSD/GPL,” “Dual MPL/GPL,” and “Proprietary.”
+4. Other descriptive definitions that can be contained within a module include MODULE_AUTHOR (stating who wrote the module), MODULE_DESCRIPTION (a human-readable statement of what the module does), MODULE_VERSION (for a code revision number; see the comments in <linux/module.h> for the conventions to use in creating version strings), MODULE_ALIAS (another name by which this module can be known),
+and MODULE_DEVICE_TABLE (to tell user space about which devices the module supports).
+5. The various MODULE_ declarations can appear anywhere within your source file outside of a function. A relatively recent convention in kernel code, however, is to put these declarations at the end of the file.
+## Initialization and Shutdown
+### static int \__init initialization_function(void)
+### {
+ ### /* Initialization code here */
+### }
+### module_init(initialization_function);
