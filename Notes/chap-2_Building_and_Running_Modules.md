@@ -81,8 +81,37 @@ MODULE_LICENSE("GPL");
 and MODULE_DEVICE_TABLE (to tell user space about which devices the module supports).
 5. The various MODULE_ declarations can appear anywhere within your source file outside of a function. A relatively recent convention in kernel code, however, is to put these declarations at the end of the file.
 ## Initialization and Shutdown
-### static int \__init initialization_function(void)
-### {
- ### /* Initialization code here */
-### }
-### module_init(initialization_function);
+##### static int \__init initialization_function(void)
+##### {
+ ##### /* Initialization code here */
+##### }
+##### module_init(initialization_function);
+1. Initialization functions should be declared static, since they are not meant to be visible outside the specific file; there is no hard rule about this, though, as no function is exported to the rest of the kernel unless explicitly requested. The \__init token in the
+definition may look a little strange; it is a hint to the kernel that the given function is used only at initialization time. The module loader drops the initialization function after the module is loaded, making its memory available for other uses. There is a similar tag (\__initdata)for data used only during initialization. Use of \__init and \__initdata is optional, but it is worth the trouble. Just be sure not to use them for any function (or data structure)you will be using after initialization completes. You may also encounter \__devinit and \__devinitdata in the kernel source; these translate to \__init and \__initdata only if the kernel has not been configured for hotpluggable devices.
+2. The use of module_init is mandatory. This macro adds a special section to the module’s object code stating where the module’s initialization function is to be found.
+3. Modules can register many different types of facilities, including different kinds of devices, filesystems, cryptographic transforms, and more. For each facility, there is a specific kernel function that accomplishes this registration. The arguments passed to
+the kernel registration functions are usually pointers to data structures describing the new facility and the name of the facility being registered. The data structure usually contains pointers to module functions, which is how functions in the module body get called.
+### The Cleanup Function
+1. Every nontrivial module also requires a cleanup function, which unregisters interfaces and returns all resources to the system before the module is removed. This function is defined as:
+##### static void \__exit cleanup_function(void)
+##### {
+ ##### /* Cleanup code here */
+##### }
+##### module_exit(cleanup_function);
+2. The cleanup function has no value to return, so it is declared void. The \__exit modifier marks the code as being for module unload only (by causing the compiler to place it in a special ELF section). If your module is built directly into the kernel, or if your kernel is configured to disallow the unloading of modules, functions marked \__exit are simply discarded. For this reason, a function marked \__exit can be called only at module unload or system shutdown time; any other use is an error. Once again, the module_exit declaration is necessary to enable to kernel to find your cleanup function. If your module does not define a cleanup function, the kernel does not allow it to be unloaded.
+
+### Error Handling During Initialization
+1. If any errors occur when you register utilities, the first order of business is to decide whether the module can continue initializing itself anyway. Often, the module can continue to operate after a registration failure, with degraded functionality if necessary. Whenever possible, your module should press forward and provide what capabilities it can after things fail.
+2. If it turns out that your module simply cannot load after a particular type of failure, you must undo any registration activities performed before the failure. Linux doesn’t keep a per-module registry of facilities that have been registered, so the module must back out of everything itself if initialization fails at some point. If you ever fail to unregister what you obtained, the kernel is left in an unstable state; it contains internal pointers to code that no longer exists. In such situations, the only recourse, usually, is to reboot the system. You really do want to take care to do the right thing when an initialization error occurs. Error recovery is sometimes best handled with the goto statement.
+
+### Module-Loading Races
+1. our discussion has skated over an important aspect of module loading: race conditions. If you are not careful in how you write your initialization function, you can create situations that can compromise the stability of the system as a whole.
+
+### Module Parameters
+
+
+
+
+
+
+
