@@ -108,6 +108,38 @@ the kernel registration functions are usually pointers to data structures descri
 1. our discussion has skated over an important aspect of module loading: race conditions. If you are not careful in how you write your initialization function, you can create situations that can compromise the stability of the system as a whole.
 
 ### Module Parameters
+1. Several parameters that a driver needs to know can change from system to system. These can vary from the device number to use (as we’ll see in the next chapter)to numerous aspects of how the driver should operate.
+2. Tagged Command Queuing (TCQ) is a technology built into certain ATA and SCSI hard drives. It allows the operating system to send multiple read and write requests to a hard drive. A SCSI host adapter is a device that is used for connecting one or more SCSI devices to a computer bus. A SCSI host adapter is usually known as a SCSI controller.
+3. SCSI adapters often have options controlling the use of tagged command queuing, and the Integrated Device Electronics (IDE)drivers allow user control of DMA operations. If your driver controls older hardware, it may also need to be told explicitly where to
+find that hardware’s I/O ports or I/O memory addresses. The kernel supports these needs by making it possible for a driver to designate parameters that may be changed when the driver’s module is loaded.
+4. These parameter values can be assigned at load time by insmod or modprobe; the latter can also read parameter assignment from its configuration file (/etc/modprobe.conf).
+- insmod hellop howmany=10 whom="Mom"
+5. The macro should be placed outside of any function and is typically found near the head of the source file. So hellop would declare its parameters and make them available to insmod as follows:
+- static char *whom = "world";
+- **static int howmany = 1;**
+- **module_param(howmany, int, S_IRUGO);**
+- **module_param(whom, charp, S_IRUGO);**
+6. Array parameters, where the values are supplied as a comma-separated list, are also supported by the module loader. To declare an array parameter.
+- **module_param_array(name,type,num,perm);**
+7. Where name is the name of your array (and of the parameter), type is the type of the array elements, num is an integer variable, and perm is the usual permissions value.
+8. Use S_IRUGO for a parameter that can be read by the world but cannot be changed; S_IRUGO|S_IWUSR allows root to change the parameter.
+
+### Doing It in User Space
+1. there are some arguments in favor of user-space programming, and sometimes writing a so-called user-space device driver is a wise alternative to kernel hacking.
+2. The advantages of user-space drivers are:
+- The full C library can be linked in. The driver can perform many exotic tasks without resorting to external programs (the utility programs implementing usage policies that are usually distributed along with the driver itself).
+- The programmer can run a conventional debugger on the driver code without having to go through contortions to debug a running kernel.
+- If a user-space driver hangs, you can simply kill it. Problems with the driver are unlikely to hang the entire system, unless the hardware being controlled is really misbehaving.
+- User memory is swappable, unlike kernel memory. An infrequently used device with a huge driver won’t occupy RAM that other programs could be using, except when it is actually in use.
+- A well-designed driver program can still, like kernel-space drivers, allow concurrent access to a device.
+- If you must write a closed-source driver, the user-space option makes it easier for you to avoid ambiguous licensing situations and problems with changing kernel interfaces.
+3. But the user-space approach to device driving has a number of drawbacks. The most important are:
+-  Interrupts are not available in user space. There are workarounds for this limitation on some platforms, such as the vm86 system call on the IA32 architecture.
+- Direct access to memory is possible only by mmapping /dev/mem, and only a privileged user can do that.
+-  Access to I/O ports is available only after calling ioperm or iopl. Moreover, not all platforms support these system calls, and access to /dev/port can be too slow to be effective. Both the system calls and the device file are reserved to a privileged user.
+- Response time is slower, because a context switch is required to transfer information or actions between the client and the hardware.
+- Worse yet, if the driver has been swapped to disk, response time is unacceptably long. Using the mlock system call might help, but usually you’ll need to lock many memory pages, because a user-space program depends on a lot of library code. mlock, too, is limited to privileged users.
+- The most important devices can’t be handled in user space, including, but not limited to, network interfaces and block devices.
 
 
 
