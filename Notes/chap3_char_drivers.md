@@ -15,3 +15,11 @@ The goal of this chapter is to write a complete char device driver. We develop a
 7. These devices are similar to scull0 but with some limitations on when an open is permitted. The first (scullsingle) allows only one process at a time to use the driver, whereas scullpriv is private to each virtual console (or X terminal session), because processes on each console/terminal get different memory areas. sculluid and scullwuid can be opened multiple times, but only by one user at a
 time; the former returns an error of “Device Busy”.
 8. Each of the scull devices demonstrates different features of a driver and presents different difficulties.
+### Major and Minor Numbers
+1. Char devices are accessed through names in the filesystem. Those names are called special files or device files or simply nodes of the filesystem tree; they are conventionally located in the /dev directory. Special files for char drivers are identified by a “c”
+in the first column of the output of ls –l. Block devices appear in /dev as well, but they are identified by a “b.”
+2. If you issue the ls –l command, you’ll see two numbers (separated by a comma) in the device file entries before the date of the last modification, where the file length normally appears. These numbers are the major and minor device number for the particular device. 
+3. Traditionally, the major number identifies the driver associated with the device.
+4. Modern Linux kernels allow multiple drivers to share major numbers, but most devices that you will see are still organized on the
+one-major-one-driver principle. The minor number is used by the kernel to determine exactly which device is being referred to. Depending on how your driver is written (as we will see below), you can either get a direct pointer to your device from the kernel, or you can use the minor number yourself as an index into a local array of devices. Either way, the kernel itself knows almost nothing about minor numbers beyond the fact that they refer to devices implemented by your driver.
+5.   
