@@ -76,3 +76,5 @@ user can pass arguments to insmod on scull_load’s command line.‡Here’s the
 ### Some Important Data Structures
 1.  Most of the fundamental driver operations involve three important kernel data structures, called file_operations, file,
 and inode. 
+### File Operations
+
