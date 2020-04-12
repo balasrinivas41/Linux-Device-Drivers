@@ -22,4 +22,24 @@ in the first column of the output of ls –l. Block devices appear in /dev as we
 3. Traditionally, the major number identifies the driver associated with the device.
 4. Modern Linux kernels allow multiple drivers to share major numbers, but most devices that you will see are still organized on the
 one-major-one-driver principle. The minor number is used by the kernel to determine exactly which device is being referred to. Depending on how your driver is written (as we will see below), you can either get a direct pointer to your device from the kernel, or you can use the minor number yourself as an index into a local array of devices. Either way, the kernel itself knows almost nothing about minor numbers beyond the fact that they refer to devices implemented by your driver.
-5.   
+
+### The Internal Representation of Device Numbers
+1. Within the kernel, the dev_t type (defined in <linux/types.h>) is used to hold device numbers—both the major and minor parts. As of Version 2.6.0 of the kernel, dev_t is a 32-bit quantity with 12 bits set aside for the major number and 20 for the minor number.
+2.  Your code should, of course, never make any assumptions about the internal organization of device numbers; it should, instead, make use of a set of macros found in <linux/kdev_t.h>. To obtain the major or minor parts of a dev_t, use:
+- **MAJOR(dev_t dev);**
+- **MINOR(dev_t dev);**
+3. If, instead, you have the major and minor numbers and need to turn them into a dev_t,
+use:
+- **MKDEV(int major, int minor);**
+
+### Allocating and Freeing Device Numbers
+1. One of the first things your driver will need to do when setting up a char device is to obtain one or more device numbers to work with. The necessary function for this task is register_chrdev_region, which is declared in <linux/fs.h>:
+- **int register_chrdev_region(dev_t first, unsigned int count, char *name);**
+2. Here, first is the beginning device number of the range you would like to allocate. The minor number portion of first is often 0, but there is no requirement to that effect. count is the total number of contiguous device numbers you are requesting. Note that, if count is large, the range you request could spill over to the next major number; but everything will still work properly as long as the number range you request is available. Finally, name is the name of the device that should be associated with this number range; it will appear in /proc/devices and sysfs.
+3. As with most kernel functions, the return value from register_chrdev_region will be 0 if the allocation was successfully performed. In case of error, a negative error code will be returned, and you will not have access to the requested region.register_chrdev_region works well if you know ahead of time exactly which device numbers you want. Often, however, you will not know which major numbers your
+device will use; there is a constant effort within the Linux kernel development community to move over to the use of dynamicly-allocated device numbers. The kernel will happily allocate a major number for you on the fly, but you must request this allocation by using a different function:
+- **int alloc_chrdev_region(dev_t *dev, unsigned int firstminor, unsigned int count, char *name);**
+4. With this function, dev is an output-only parameter that will, on successful completion, hold the first number in your allocated range. firstminor should be the requested first minor number to use; it is usually 0. The count and name parameters work like those given to request_chrdev_region.
+5. Regardless of how you allocate your device numbers, you should free them when they are no longer in use. Device numbers are freed with:
+- **void unregister_chrdev_region(dev_t first, unsigned int count);**
+6. The usual place to call unregister_chrdev_region would be in your module’s cleanup function.
