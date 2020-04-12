@@ -44,3 +44,35 @@ device will use; there is a constant effort within the Linux kernel development 
 - **void unregister_chrdev_region(dev_t first, unsigned int count);**
 6. The usual place to call unregister_chrdev_region would be in your module’s cleanup function.
 
+### Dynamic Allocation of Major Numbers
+1. Some major device numbers are statically assigned to the most common devices. A list of those devices can be found in Documentation/devices.txt within the kernel source tree. 
+2. Driver writer, you have a choice: you can simply pick a number that appears to be unused, or you can allocate major numbers in a dynamic manner. Picking a number may work as long as the only user of your driver is you; once your driver is more widely deployed, a randomly picked major number will lead to conflicts and trouble.
+3. Thus, for new drivers, we strongly suggest that you use dynamic allocation to obtain your major device number, rather than choosing a number randomly from the ones that are currently free. In other words, your drivers should almost certainly be using
+alloc_chrdev_region rather than register_chrdev_region.
+4. The script to load a module that has been assigned a dynamic number can, therefore, be written using a tool such as awk to retrieve information from /proc/devices in order to create the files in /dev.
+5. The following script, scull_load, is part of the scull distribution. The user of a driver that is distributed in the form of a module can invoke such a script from the system’s rc.local file or call it manually whenever the module is needed.
+6. The script can be adapted for another driver by redefining the variables and adjusting the mknod lines. The script just shown creates four devices because four is the default in the scull sources.
+7. The last few lines of the script may seem obscure: why change the group and mode of a device? The reason is that the script must be run by the superuser, so newly created special files are owned by root. The permission bits default so that only root has
+write access, while anyone can get read access. 
+8. A scull_unload script is also available to clean up the /dev directory and remove the
+module.
+9. As an alternative to using a pair of scripts for loading and unloading, you could write an init script, ready to be placed in the directory your distribution uses for these scripts. As part of the scull source, we offer a fairly complete and configurable example of an init script, called scull.init; it accepts the conventional arguments—start, stop, and restart—and performs the role of both scull_load and scull_unload.
+10. The best way to assign major numbers, in our opinion, is by defaulting to dynamic allocation while leaving yourself the option of specifying the major number at load time, or even at compile time. The scull implementation works in this way; it uses a
+global variable, scull_major, to hold the chosen number (there is also a scull_minor for the minor number). The variable is initialized to SCULL_MAJOR, defined in scull.h. The default value of SCULL_MAJOR in the distributed source is 0, which means “use
+dynamic assignment.” The user can accept the default or choose a particular major number, either by modifying the macro before compiling or by specifying a value for scull_major on the insmod command line. Finally, by using the scull_load script, the
+user can pass arguments to insmod on scull_load’s command line.‡Here’s the code we use in scull’s source to get a major number:
+- **if (scull_major) {**
+-  **dev = MKDEV(scull_major, scull_minor);**
+ - **result = register_chrdev_region(dev, scull_nr_devs, "scull");**
+- **} else {**
+ - **result = alloc_chrdev_region(&dev, scull_minor, scull_nr_devs, "scull");
+ - **scull_major = MAJOR(dev);**
+- **}**
+- **if (result < 0) {**
+- **printk(KERN_WARNING "scull: can't get major %d\n", scull_major);**
+ - **return result;**
+- **}**
+
+### Some Important Data Structures
+1.  Most of the fundamental driver operations involve three important kernel data structures, called file_operations, file,
+and inode. 
