@@ -43,3 +43,4 @@ device will use; there is a constant effort within the Linux kernel development 
 5. Regardless of how you allocate your device numbers, you should free them when they are no longer in use. Device numbers are freed with:
 - **void unregister_chrdev_region(dev_t first, unsigned int count);**
 6. The usual place to call unregister_chrdev_region would be in your module’s cleanup function.
+
