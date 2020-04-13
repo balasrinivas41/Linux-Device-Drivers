@@ -77,4 +77,8 @@ user can pass arguments to insmod on scull_load’s command line.‡Here’s the
 1.  Most of the fundamental driver operations involve three important kernel data structures, called file_operations, file,
 and inode. 
 ### File Operations
+1. The file_operations structure is how a char driver sets up this connection. The structure, defined in <linux/fs.h>, is a collection of function pointers. Each open file (represented internally by a file structure, which we will examine shortly) is associated with its own set of functions (by including a field called f_op that points to a file_operations structure). The operations are mostly in charge of implementing the system calls and are therefore, named open, read, and so on.
+2. We can consider the file to be an “object” and the functions operating on it to be its “methods,” using object-oriented programming
+terminology to denote actions declared by an object to act on itself.
+3. Conventionally, a file_operations structure or a pointer to one is called fops (or some variation thereof). Each field in the structure must point to the function in the driver that implements a specific operation, or be left NULL for unsupported operations. 
 
