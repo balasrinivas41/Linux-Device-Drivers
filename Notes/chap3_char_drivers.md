@@ -92,3 +92,4 @@ terminology to denote actions declared by an object to act on itself.
  - **.release = scull_release,**
 - **};**
 This declaration uses the standard C tagged structure initialization syntax.
+5. As you read through the list of file_operations methods, you will note that a number of parameters include the string \__user. This annotation is a form of documentation, noting that a pointer is a user-space address that cannot be directly dereferenced. For normal compilation, \__user has no effect, but it can be used by external checking software to find misuse of user-space addresses
