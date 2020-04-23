@@ -81,4 +81,14 @@ and inode.
 2. We can consider the file to be an “object” and the functions operating on it to be its “methods,” using object-oriented programming
 terminology to denote actions declared by an object to act on itself.
 3. Conventionally, a file_operations structure or a pointer to one is called fops (or some variation thereof). Each field in the structure must point to the function in the driver that implements a specific operation, or be left NULL for unsupported operations. 
-
+4. The scull device driver implements only the most important device methods. Its file_operations structure is initialized as follows:
+- **struct file_operations scull_fops = {**
+ - **.owner = THIS_MODULE,**
+ - **.llseek = scull_llseek,**
+ - **.read = scull_read,**
+ - **.write = scull_write,**
+ - **.ioctl = scull_ioctl,**
+ - **.open = scull_open,**
+ - **.release = scull_release,**
+- **};**
+This declaration uses the standard C tagged structure initialization syntax.
