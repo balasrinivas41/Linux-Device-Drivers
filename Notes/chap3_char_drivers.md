@@ -93,3 +93,7 @@ terminology to denote actions declared by an object to act on itself.
 - **};**
 This declaration uses the standard C tagged structure initialization syntax.
 5. As you read through the list of file_operations methods, you will note that a number of parameters include the string \__user. This annotation is a form of documentation, noting that a pointer is a user-space address that cannot be directly dereferenced. For normal compilation, \__user has no effect, but it can be used by external checking software to find misuse of user-space addresses
+
+### The file Structure
+1. The file structure represents an open file. (It is not specific to device drivers; every open file in the system has an associated struct file in kernel space.) It is created by the kernel on open and is passed to any function that operates on the file, until
+the last close. After all instances of the file are closed, the kernel releases the data structure.
