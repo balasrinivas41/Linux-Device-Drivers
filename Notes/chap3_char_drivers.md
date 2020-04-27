@@ -121,6 +121,8 @@ they all point to a single inode structure.
 2. There are two ways of allocating and initializing one of these structures. If you wish to obtain a standalone cdev structure at runtime, you may do so with code such as:
 **struct cdev *my_cdev = cdev_alloc( );**
 **my_cdev->ops = &my_fops;**
-3. 
+3. you will want to embed the cdev structure within a device-specific structure of your own; that is what scull does. In that case, you should initialize the structure that you have already allocated with:
+**void cdev_init(struct cdev *cdev, struct file_operations *fops);**
+4. 
 
 
