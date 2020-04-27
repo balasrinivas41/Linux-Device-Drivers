@@ -99,4 +99,6 @@ This declaration uses the standard C tagged structure initialization syntax.
 the last close. After all instances of the file are closed, the kernel releases the data structure.
 2. In the kernel sources, a pointer to struct file is usually called either file or filp (“file pointer”). We’ll consistently call the pointer filp to prevent ambiguities with the structure itself. Thus, file refers to the structure and filp to a pointer to the
 structure.
-3. 
+3. **void \*private_data;**
+The open system call sets this pointer to NULL before calling the open method for the driver. You are free to make its own use of the field or to ignore it; you can use the field to point to allocated data, but then you must remember to free that memory in the release method before the file structure is destroyed by the kernel. private_data is a useful resource for preserving state information across system calls and is used by most of our sample modules.
+
