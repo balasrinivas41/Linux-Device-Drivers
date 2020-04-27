@@ -111,7 +111,16 @@ they all point to a single inode structure.
 **struct cdev *i_cdev;**
 4. struct cdev is the kernel’s internal structure that represents char devices; this field contains a pointer to that structure when the inode refers to a char device file.
 5. The kernel developers have added two macros that can be used to obtain the major and minor number from an inode:
-**unsigned int iminor(struct inode *inode);**
-**unsigned int imajor(struct inode *inode);**
+**unsigned int iminor(struct inode \*inode);**
+**unsigned int imajor(struct inode \*inode);**
 6. In the interest of not being caught by the next change, these macros should be used instead of manipulating i_rdev directly.
+
+### Char Device Registration
+
+1. The kernel uses structures of type struct cdev to represent char devices internally. Before the kernel invokes your device’s operations, you must allocate and register one or more of these structures.* To do so, your code should include <linux/cdev.h>, where the structure and its associated helper functions are defined.
+2. There are two ways of allocating and initializing one of these structures. If you wish to obtain a standalone cdev structure at runtime, you may do so with code such as:
+**struct cdev *my_cdev = cdev_alloc( );**
+**my_cdev->ops = &my_fops;**
+3. 
+
 
