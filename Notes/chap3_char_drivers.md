@@ -101,4 +101,17 @@ the last close. After all instances of the file are closed, the kernel releases 
 structure.
 3. **void \*private_data;**
 The open system call sets this pointer to NULL before calling the open method for the driver. You are free to make its own use of the field or to ignore it; you can use the field to point to allocated data, but then you must remember to free that memory in the release method before the file structure is destroyed by the kernel. private_data is a useful resource for preserving state information across system calls and is used by most of our sample modules.
+## The inode Structure
+
+1. The inode structure is used by the kernel internally to represent files. Therefore, it is different from the file structure that represents an open file descriptor. There can be numerous file structures representing multiple open descriptors on a single file, but
+they all point to a single inode structure.
+2. The inode structure contains a great deal of information about the file. As a general rule, only two fields of this structure are of interest for writing driver code:
+**dev_t i_rdev;**
+3. For inodes that represent device files, this field contains the actual device number.
+**struct cdev *i_cdev;**
+4. struct cdev is the kernel’s internal structure that represents char devices; this field contains a pointer to that structure when the inode refers to a char device file.
+5. The kernel developers have added two macros that can be used to obtain the major and minor number from an inode:
+**unsigned int iminor(struct inode *inode);**
+**unsigned int imajor(struct inode *inode);**
+6. In the interest of not being caught by the next change, these macros should be used instead of manipulating i_rdev directly.
 
