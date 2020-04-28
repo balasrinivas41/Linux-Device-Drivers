@@ -123,6 +123,10 @@ they all point to a single inode structure.
 **my_cdev->ops = &my_fops;**
 3. you will want to embed the cdev structure within a device-specific structure of your own; that is what scull does. In that case, you should initialize the structure that you have already allocated with:
 **void cdev_init(struct cdev *cdev, struct file_operations *fops);**
-4. 
-
+4. Here, dev is the cdev structure, num is the first device number to which this device responds, and count is the number of device numbers that should be associated with the device. Often count is one, but there are situations where it makes sense to have
+more than one device number correspond to a specific device. Consider, for example, the SCSI tape driver, which allows user space to select operating modes (such as density) by assigning multiple minor numbers to each physical device.
+5. There are a couple of important things to keep in mind when using cdev_add. The first is that this call can fail. If it returns a negative error code, your device has not been added to the system. It almost always succeeds, however, and that brings up
+the other point: as soon as cdev_add returns, your device is “live” and its operations can be called by the kernel. You should not call cdev_add until your driver is completely ready to handle operations on the device. To remove a char device from the system, call:
+   **void cdev_del(struct cdev \*dev);**
+6. Clearly, you should not access the cdev structure after passing it to cdev_del.
 
