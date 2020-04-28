@@ -129,4 +129,16 @@ more than one device number correspond to a specific device. Consider, for examp
 the other point: as soon as cdev_add returns, your device is “live” and its operations can be called by the kernel. You should not call cdev_add until your driver is completely ready to handle operations on the device. To remove a char device from the system, call:
    **void cdev_del(struct cdev \*dev);**
 6. Clearly, you should not access the cdev structure after passing it to cdev_del.
+### Device Registration in scull
+1. Internally, scull represents each device with a structure of type struct scull_dev. This structure is defined as:
+**struct scull_dev {**
+ **struct scull_qset *data;**
+ **int quantum; **
+ **int qset; **
+ **unsigned long size; **
+ **unsigned int access_key; **
+ **struct semaphore sem; **
+ **struct cdev cdev;** 
+**};**
+2. 
 
