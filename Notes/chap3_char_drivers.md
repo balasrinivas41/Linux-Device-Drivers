@@ -140,5 +140,27 @@ the other point: as soon as cdev_add returns, your device is “live” and its 
  ##### struct semaphore sem; 
  ##### struct cdev cdev;
 ##### };
-2. 
+2. the scull code that handles this task is:
+##### static void scull_setup_cdev(struct scull_dev *dev, int index)
+##### {
+##### int err, devno = MKDEV(scull_major, scull_minor + index);
+##### cdev_init(&dev->cdev, &scull_fops);
+##### dev->cdev.owner = THIS_MODULE;
+##### dev->cdev.ops = &scull_fops;
+##### err = cdev_add (&dev->cdev, devno, 1);
+#####  /* Fail gracefully if need be */
+ ##### if (err)
+ ##### printk(KERN_NOTICE "Error %d adding scull%d", err, index);
+##### }
+
+### The Older Way
+
+1.  we describe the older char device registration interface, but new code should not use it; this mechanism will likely go away in a future kernel.
+2. The classic way to register a char device driver is with:
+int register_chrdev(unsigned int major, const char *name, struct file_operations *fops);
+3. Here, major is the major number of interest, name is the name of the driver (it appears in /proc/devices), and fops is the default file_operations structure. A call to register_chrdev registers minor numbers 0–255 for the given major, and sets up a
+default cdev structure for each. Drivers using this interface must be prepared to handle open calls on all 256 minor numbers (whether they correspond to real devices or not), and they cannot use major or minor numbers greater than 255.
+4. If you use register_chrdev, the proper function to remove your device(s) from the system is:
+int unregister_chrdev(unsigned int major, const char *name);
+5. major and name must be the same as those passed to register_chrdev, or the call will fail
 
