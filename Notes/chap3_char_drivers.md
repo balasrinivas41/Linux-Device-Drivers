@@ -131,14 +131,14 @@ the other point: as soon as cdev_add returns, your device is “live” and its 
 6. Clearly, you should not access the cdev structure after passing it to cdev_del.
 ### Device Registration in scull
 1. Internally, scull represents each device with a structure of type struct scull_dev. This structure is defined as:
-**struct scull_dev {**
- **struct scull_qset *data;**
- **int quantum; **
- **int qset; **
- **unsigned long size; **
- **unsigned int access_key; **
- **struct semaphore sem; **
- **struct cdev cdev;** 
-**};**
+##### struct scull_dev {
+ ##### struct scull_qset *data;
+ ##### int quantum; 
+ ##### int qset; 
+ ##### unsigned long size; 
+ ##### unsigned int access_key; 
+ ##### struct semaphore sem; 
+ ##### struct cdev cdev;
+##### };
 2. 
 
